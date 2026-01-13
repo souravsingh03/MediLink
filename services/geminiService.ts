@@ -1,10 +1,28 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import { PatientData, TriageResult, Severity } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Defensive initialization to prevent white-screen on missing process.env
+const getAiClient = () => {
+  const apiKey = process.env.API_KEY;
+  if (!apiKey) {
+    console.warn("Gemini API Key is missing. Triage features will use fallback logic.");
+    return null;
+  }
+  return new GoogleGenAI({ apiKey });
+};
 
 export const triagePatient = async (data: PatientData): Promise<TriageResult> => {
+  const ai = getAiClient();
+  
+  if (!ai) {
+    return {
+      severity: Severity.MODERATE,
+      summary: "Triage service temporarily offline (API Key Missing). Please follow manual emergency protocols.",
+      recommended_specialists: ["ER Triage Physician"],
+      equipment_needed: ["Standard Emergency Response Kit"]
+    };
+  }
+
   try {
     const prompt = `
       Act as an emergency medical triage AI. Analyze the following patient data provided by paramedics.
@@ -47,12 +65,13 @@ export const triagePatient = async (data: PatientData): Promise<TriageResult> =>
       }
     });
 
-    return JSON.parse(response.text) as TriageResult;
+    const textOutput = response.text || "{}";
+    return JSON.parse(textOutput) as TriageResult;
   } catch (error) {
     console.error("Triage Error:", error);
     return {
       severity: Severity.MODERATE,
-      summary: "Automated triage unavailable. Proceed with standard emergency protocols.",
+      summary: "Automated triage analysis failed. Proceed with standard emergency protocols and human assessment.",
       recommended_specialists: ["General ER Physician"],
       equipment_needed: ["Standard ER Kit"]
     };
