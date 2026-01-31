@@ -11,7 +11,8 @@ Medilink is a healthcare-focused application aimed at simplifying access to medi
 - Structured and maintainable codebase  
 
 ## Tech Stack
-- Java  
+- Java
+- Typescript
 - Spring Boot  
 - REST APIs  
 - JDBC  
