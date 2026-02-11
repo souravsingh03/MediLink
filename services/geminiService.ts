@@ -1,15 +1,19 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 import { PatientData, TriageResult, Severity } from "../types";
 
 // Defensive initialization to prevent white-screen on missing process.env
 const getAiClient = () => {
-  const apiKey = process.env.API_KEY;
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+
   if (!apiKey) {
     console.warn("Gemini API Key is missing. Triage features will use fallback logic.");
     return null;
   }
+
   return new GoogleGenAI({ apiKey });
 };
+
 
 export const triagePatient = async (data: PatientData): Promise<TriageResult> => {
   const ai = getAiClient();
